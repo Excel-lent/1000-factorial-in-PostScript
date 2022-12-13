@@ -9,7 +9,7 @@
 /RM 216 def %left margin 
 /ypos 720 def %current y-position 
 /lineheight 14 def %distance between lines
-/Tempstr 4 string def
+/Tempstr 8 string def
 /MAXARRAY 3000 def
 /numbers MAXARRAY array def
 /N 1000 def
@@ -36,22 +36,27 @@
 } def
 
 %/check10 - checking for 'overflow', when the number in 'numbers' is greater 
-% then 9, then one should add an 'overflow' to the next cell
+% then 9999, then one should add an 'overflow' to the next cell
 % We are doing this after multiplication of each cells of 'numbers' by 
 % 'counter'. 
 /check10 {
    0 1 MAXARRAY -2 add {/c2 exch def numbers c2 get /number exch def
-          numbers c2 number 10 mod put
-          numbers c2 1 add numbers c2 1 add get number 10 idiv add put
+          numbers c2 number 10000 mod put
+          numbers c2 1 add numbers c2 1 add get number 10000 idiv add put
          } for
+} def
+
+% pads nums left to 0000
+/pad {
+	10000 add 7 string cvs 1 4 getinterval
 } def
 
 % /showar - showing an array 'numbers' in a good format
 /showar 
 {MAXARRAY -1 add -1 0 
         {currentpoint pop 500 gt {crlf} if numbers exch get dup 0 ne 
-              {/cprint 1 def Tempstr cvs show}
-              {cprint 0 ne {Tempstr cvs show} {pop} ifelse} 
+              {/cprint 1 def pad Tempstr cvs show}
+              {cprint 0 ne {pad Tempstr cvs show} {pop} ifelse} 
  ifelse }
  for} def
 
