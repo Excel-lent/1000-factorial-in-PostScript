@@ -6,72 +6,78 @@
 % -- N --
 /N 1000 def
 
-% -------------- Variables --------------- 
-/LM 72 def %right margin 
-/RM 216 def %left margin 
-/ypos 720 def %current y-position 
+% -------------- Consts --------------- 
+/LM 72 def            % right margin 
+/RM 216 def           % left margin 
+/MAXARRAY             % num of decimal quartets, Stirling approx
+  .5 N add N ln mul .918938 add N sub abs 10 ln div 
+  floor 1 add 4 div 1 add cvi def
+/LH 370 MAXARRAY sqrt div dup 19 gt {pop 19} if def
+
+% -------------- Vars --------------- 
 /Tempstr 8 string def
-/MAXARRAY .5 N add N ln mul .918938 add N sub abs 10 ln div floor 1 add 4 div 1 add cvi def
-/lineheight 20 MAXARRAY 0.39 exp 1.682 div sub def
+/ypos 720 def          %current y-position 
 /numbers MAXARRAY array def
 
 
-% ------------- Procedures --------------- 
-/crlf                 %move to next line 
-{ ypos lineheight sub %decrease ypos 
-/ypos exch def       % ...& save new value
-LM ypos moveto } def %move to next line 
-
-/counter 0 def% the number of current factorial because we are calculating 
-          % it step-by-step in the loop
-/c2 0 def     % pointer of 'number' in array 'numbers'; 
-          % needed for adding of 'overflow' to the next cell of array
-/number 0 def % current number from array 'numbers'
-/cprint 0 def % necessary for printing: to not print some 'zeroes' before 
-          % factorial
-
-%/mult - multiplication of array 'numbers' by 'counter'
-/mult 
-{ 0 1 MAXARRAY -1 add
-{dup numbers exch get counter mul numbers 3 1 roll put
-} for  
+% ------------- Procs --------------- 
+/crlf {                % move to next line 
+  ypos LH sub          % decrease ypos 
+  /ypos exch def       % ...& save new value
+  LM ypos moveto       % move to next line 
 } def
 
-%/check10 - checking for 'overflow', when the number in 'numbers' is greater 
-% then 9, then one should add an 'overflow' to the next cell
-% We are doing this after multiplication of each cells of 'numbers' by 
+/counter 0 def
+/c2 0 def     % pointer of 'number' in array 'numbers'; 
+              % needed for adding of 'overflow' to the next cell
+/number 0 def % current number from array 'numbers'
+/cprint 0 def % necessary for printing: to not print some 'zeroes'
+              % before factorial
+
+% multiplication of array 'numbers' by 'counter'
+/mult {
+  0 1 MAXARRAY -1 add {
+    dup numbers exch get counter mul numbers 3 1 roll put
+  } for  
+} def
+
+% Checks for 'overflow', when the number in 'numbers' is greater 
+% then 9999, then one should add an 'overflow' to the next cell.
+% Doing this after multiplication of each cells of 'numbers' by 
 % 'counter'. 
-/check10 {
-0 1 MAXARRAY -2 add {/c2 exch def numbers c2 get /number exch def
-      numbers c2 number 10000 mod put
-      numbers c2 1 add numbers c2 1 add get number 10000 idiv add put
-     } for
+/overflow {
+  0 1 MAXARRAY -2 add {
+    /c2 exch def numbers c2 get /number exch def
+    numbers c2 number 10000 mod put
+    numbers c2 1 add numbers c2 1 add get 
+    number 10000 idiv add put
+  } for
 } def
 
 % pads nums left to 0000
-/pad {
-  10000 add 7 string cvs 1 4 getinterval
+/pad {10000 add 7 string cvs 1 4 getinterval} def
+
+% showing an array 'numbers' in a good format
+/showar {
+  MAXARRAY -1 add -1 0 {
+    currentpoint pop 500 gt {crlf} if 
+    numbers exch get dup 0 ne {
+      /cprint 1 def pad Tempstr cvs show} {
+       cprint 0 ne {pad Tempstr cvs show} {pop} ifelse
+    } ifelse 
+  } for
 } def
 
-% /showar - showing an array 'numbers' in a good format
-/showar 
-{MAXARRAY -1 add -1 0 
-    {currentpoint pop 500 gt {crlf} if numbers exch get dup 0 ne 
-          {/cprint 1 def pad Tempstr cvs show}
-          {cprint 0 ne {pad Tempstr cvs show} {pop} ifelse} 
-ifelse }
-for} def
+% ------------- Render -------------- 
 
-%------------- Main Program -------------- 
 LM ypos moveto 
-
 /Times-Bold findfont 14 scalefont setfont
 N Tempstr cvs show (!=) show
 /LM 106 def 
-/Times-Roman findfont lineheight scalefont setfont
-0 1 MAXARRAY -1 add {numbers exch 0 put } for
+/Times-Roman findfont LH scalefont setfont
+0 1 MAXARRAY -1 add {numbers exch 0 put} for
 numbers 0 1 put
-1 1 N {/counter exch def mult check10 /cprint 0 def } for
+1 1 N {/counter exch def mult overflow /cprint 0 def} for
 showar
 
 showpage
